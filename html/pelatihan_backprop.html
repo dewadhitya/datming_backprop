@@ -1,0 +1,192 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>pelatihan_backprop</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-29"><meta name="DC.source" content="pelatihan_backprop.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">clc; clear; close <span class="string">all</span>;
+
+<span class="comment">% Proses membaca data latih dari excel</span>
+filename = <span class="string">'data_curahHujan.xlsx'</span>;
+sheet = 2;
+xlRange = <span class="string">'C4:O15'</span>;
+
+Data = xlsread(filename, sheet, xlRange);
+data_latih = Data(:,1:12)';
+target_latih = Data(:,13)';
+[m,n] = size(data_latih);
+
+<span class="comment">% Pembuatan JST</span>
+net = newff(minmax(data_latih),[10 1],{<span class="string">'logsig'</span>,<span class="string">'purelin'</span>},<span class="string">'traingdx'</span>);
+
+<span class="comment">% Memberikan nilai untuk mempengaruhi proses pelatihan</span>
+net.performFcn = <span class="string">'mse'</span>;
+net.trainParam.goal = 0.001; <span class="comment">%performance goal</span>
+net.trainParam.show = 20; <span class="comment">%Epochs between showing progress</span>
+net.trainParam.epochs = 1000; <span class="comment">%Maximum number of epochs to train</span>
+<span class="comment">%net.trainParam.mc = 0.95;</span>
+net.trainParam.lr = 0.1; <span class="comment">%Laju Pemahaman/Learning Rate</span>
+
+<span class="comment">% Proses training</span>
+[net_keluaran,tr,Y,E] = train(net,data_latih,target_latih);
+
+<span class="comment">% Hasil setelah pelatihan</span>
+bobot_hidden = net_keluaran.IW{1,1};
+bobot_keluaran = net_keluaran.LW{2,1};
+bias_hidden = net_keluaran.b{1,1};
+bias_keluaran = net_keluaran.b{2,1};
+jumlah_iterasi = tr.num_epochs;
+nilai_keluaran = Y;
+nilai_error = E;
+error_MSE = (1/n)*sum(nilai_error.^2);
+
+save <span class="string">net.mat</span> <span class="string">net_keluaran</span>
+
+<span class="comment">% Hasil prediksi</span>
+hasil_latih = sim(net_keluaran,data_latih);
+max_data = 2590;
+min_data = 0;
+hasil_latih = ((hasil_latih-0.1)*(max_data-min_data)/0.8)+min_data;
+
+
+figure,
+plotperform(tr)
+
+figure,
+plot(hasil_latih,<span class="string">'bo-'</span>)
+hold <span class="string">on</span>
+
+grid <span class="string">on</span>
+title(strcat([<span class="string">'Grafik Keluaran JST dengan nilai MSE = '</span>,<span class="keyword">...</span>
+    num2str(error_MSE)]))
+xlabel(<span class="string">'Pola ke-'</span>)
+ylabel(<span class="string">'Curah Hujan'</span>)
+legend(<span class="string">'Keluaran JST'</span>,<span class="string">'Target'</span>,<span class="string">'Location'</span>,<span class="string">'Best'</span>)
+</pre><pre class="codeoutput">Warning: NEWFF used in an obsolete way. 
+          See help for NEWFF to update calls to the new argument list.
+ 
+Warning: Ignoring extra legend entries. 
+</pre><img vspace="5" hspace="5" src="pelatihan_backprop_01.png" alt=""> <img vspace="5" hspace="5" src="pelatihan_backprop_02.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clc; clear; close all;
+
+% Proses membaca data latih dari excel
+filename = 'data_curahHujan.xlsx';
+sheet = 2;
+xlRange = 'C4:O15';
+
+Data = xlsread(filename, sheet, xlRange);
+data_latih = Data(:,1:12)';
+target_latih = Data(:,13)';
+[m,n] = size(data_latih);
+
+% Pembuatan JST
+net = newff(minmax(data_latih),[10 1],{'logsig','purelin'},'traingdx');
+
+% Memberikan nilai untuk mempengaruhi proses pelatihan
+net.performFcn = 'mse';
+net.trainParam.goal = 0.001; %performance goal
+net.trainParam.show = 20; %Epochs between showing progress
+net.trainParam.epochs = 1000; %Maximum number of epochs to train
+%net.trainParam.mc = 0.95;
+net.trainParam.lr = 0.1; %Laju Pemahaman/Learning Rate
+
+% Proses training
+[net_keluaran,tr,Y,E] = train(net,data_latih,target_latih);
+
+% Hasil setelah pelatihan
+bobot_hidden = net_keluaran.IW{1,1};
+bobot_keluaran = net_keluaran.LW{2,1};
+bias_hidden = net_keluaran.b{1,1};
+bias_keluaran = net_keluaran.b{2,1};
+jumlah_iterasi = tr.num_epochs;
+nilai_keluaran = Y;
+nilai_error = E;
+error_MSE = (1/n)*sum(nilai_error.^2);
+
+save net.mat net_keluaran
+
+% Hasil prediksi
+hasil_latih = sim(net_keluaran,data_latih);
+max_data = 2590; 
+min_data = 0;
+hasil_latih = ((hasil_latih-0.1)*(max_data-min_data)/0.8)+min_data;
+
+
+figure,
+plotperform(tr)
+
+figure,
+plot(hasil_latih,'bo-')
+hold on
+
+grid on
+title(strcat(['Grafik Keluaran JST dengan nilai MSE = ',...
+    num2str(error_MSE)]))
+xlabel('Pola ke-')
+ylabel('Curah Hujan')
+legend('Keluaran JST','Target','Location','Best')
+##### SOURCE END #####
+--></body></html>
